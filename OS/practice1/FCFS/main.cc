@@ -4,6 +4,7 @@
 
 #include "Task.hpp"
 
+// 方案一：FCFS，先来先服务+非抢占式
 // 所有任务生产完成的标记
 static bool processDone = false;
 
