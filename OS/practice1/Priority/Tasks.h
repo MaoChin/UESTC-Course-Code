@@ -9,17 +9,16 @@
 
 // 共产生 TASKNUM 个 Task
 #define TASKNUM 5
+// 整把全局互斥锁，保护临界资源 tasks  加 static 修饰，防止多个文件包含这个头文件而导致命名冲突
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+// 所有任务生产完成的标记
+static bool processDone = false;
 
 using namespace std::chrono;
 using std::cout;
 using std::cin;
 using std::cerr;
 using std::endl;
-
-// 整把全局互斥锁，保护临界资源 tasks
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-// 所有任务生产完成的标记
-static bool processDone = false;
 
 class TaskNode
 {
@@ -54,8 +53,8 @@ public:
   // 优先级设置成 public
   int priority_;                                 // 优先级
 private:
-  int totalProcessTime_;                         // 总处理时间  单位：ms
-  int remainProcessTime_;                        // 剩余处理时间
+  int totalProcessTime_;                         // 总处理时间   单位：ms
+  int remainProcessTime_;                        // 剩余处理时间 单位：ms
   steady_clock::time_point comeTime_;            // Task到达时间
   steady_clock::time_point completeTime_;        // Task 处理完成时间
 };
@@ -67,7 +66,15 @@ public:
   {}
 
   ~Tasks()
-  {}
+  {
+    // 释放 new 的资源
+    while(!Empty())
+    {
+      TaskNode* tmp = Top();
+      Pop();
+      delete tmp;
+    }
+  }
 
   void Push(TaskNode* task)
   {
@@ -85,10 +92,8 @@ public:
   {
     return readyQueue_.top();
   }
-  void Print()
-  {}
-  void ProcessTasks()
-  {}
+  void Print();
+  void ProcessTasks();
 
 private:
   // 1. 优先级+抢占式

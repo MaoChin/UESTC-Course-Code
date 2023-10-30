@@ -96,7 +96,7 @@ void* ProduceTask(void* ptasks)
     // 3.构造Task
     auto comeTime = steady_clock::now();
     processTime = (rand() % 5000) + 1000;    // 处理时间在 1~6s之间 
-    priority = (rand() % 5) + 20;           // 优先级在 [20, 100]之间
+    priority = (rand() % 5) + 20;           // 优先级在 [20, 25]之间
     TaskNode* taskNode = new TaskNode(comeTime, processTime, priority);
 
     // 加锁
