@@ -13,9 +13,9 @@
 #define TIMESLICE 2000
 
 // 整把全局互斥锁，保护临界资源 tasks
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 // 所有任务生产完成的标记
-bool processDone = false;
+static bool processDone = false;
 
 using namespace std::chrono;
 using std::cout;
@@ -71,12 +71,8 @@ public:
   ~Tasks()
   {
     // 释放 new 的资源
-    while(!Empty())
-    {
-      TaskNode* tmp = Top();
-      Pop();
-      delete tmp;
-    }
+    for(auto& elem : printVector_)
+      delete elem;
   }
 
   // 重载
@@ -107,6 +103,6 @@ public:
 private:
   // 1. 优先级+抢占式
   std::priority_queue<TaskNode*> readyQueue_;
-  // 方便打印
+  // 方便打印和 delete
   std::vector<TaskNode*> printVector_;
 };

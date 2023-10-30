@@ -61,13 +61,18 @@ void* ProduceTask(void* ptasks)
     // 3.构造Task
     auto comeTime = steady_clock::now();
     processTime = (rand() % 5000) + 1000;    // 处理时间在 1~6s之间 
-    priority = (rand() % 5) + 20;           // 优先级在 [20, 25]之间
+
+    // 短任务优先！
+    if(processTime < 1000) priority = 100;
+    else priority = (rand() % 5) + 20;           // 优先级在 [20, 25]之间
     TaskNode* taskNode = new TaskNode(comeTime, processTime, priority);
 
     // 加锁
     pthread_mutex_lock(&mutex);   // 阻塞式加锁
     ptasksCur->Push(taskNode);
     pthread_mutex_unlock(&mutex);
+
+    ptasksCur->Push(taskNode, 0);
   }
   processDone = true;
   return NULL;

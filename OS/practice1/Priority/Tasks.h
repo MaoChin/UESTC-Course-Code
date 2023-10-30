@@ -69,12 +69,8 @@ public:
   ~Tasks()
   {
     // 释放 new 的资源
-    while(!Empty())
-    {
-      TaskNode* tmp = Top();
-      Pop();
-      delete tmp;
-    }
+    for(auto& elem : printVector_)
+      delete elem;
   }
   
   // 重载
