@@ -4,19 +4,10 @@
 void Tasks::Print()
 {
   int num = 1;
-  Tasks tmpTasks;
-  while(!Empty())
+  for(auto& elem : printVector_)
   {
-    TaskNode* cur = Top();
     printf("第%d个task:\n", num++);
-    cur->PrintIndicator();
-    tmpTasks.Push(cur);
-    Pop();
-  }
-  while(!tmpTasks.Empty())
-  {
-    Push(tmpTasks.Top());
-    tmpTasks.Pop();
+    elem->PrintIndicator();
   }
 }
 
@@ -42,9 +33,9 @@ void Tasks::ProcessTasks()
       if(cpu.beDeprive_)
       {
         // 1.3 被剥夺
-        // 1.3.1 把当前process优先级降1
-        if(curTaskNode->priority_ > 20) (curTaskNode->priority_)--;
-        cout << "current task be deprive! now current task's priority: "
+        // 1.3.1 把当前process优先级加1
+        if(curTaskNode->priority_ > 20) ++(curTaskNode->priority_);
+        cout << "current task be depriveed! now current task's priority: "
           << curTaskNode->priority_ << endl;
         // 1.3.2 再把该task插入到队列里继续下一轮
         pthread_mutex_lock(&mutex);
@@ -96,12 +87,13 @@ void* ProduceTask(void* ptasks)
     // 3.构造Task
     auto comeTime = steady_clock::now();
     processTime = (rand() % 5000) + 1000;    // 处理时间在 1~6s之间 
-    priority = (rand() % 5) + 20;           // 优先级在 [20, 100]之间
+    priority = (rand() % 5) + 20;           // 优先级在 [20, 25]之间
     TaskNode* taskNode = new TaskNode(comeTime, processTime, priority);
 
     // 加锁
     pthread_mutex_lock(&mutex);   // 阻塞式加锁
     ptasksCur->Push(taskNode);
+    ptasksCur->Push(taskNode, 0);
     pthread_mutex_unlock(&mutex);
   }
   processDone = true;

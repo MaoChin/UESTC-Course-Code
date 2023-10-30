@@ -1,6 +1,6 @@
 #include "Tasks.h"
 
-// 我自己的方案：时间片轮转 + 优先级抢占式
+// 我自己的方案：时间片轮转 + 优先级 + 短任务优先 + 非抢占式
 void* ProduceTask(void*);
 int main()
 {

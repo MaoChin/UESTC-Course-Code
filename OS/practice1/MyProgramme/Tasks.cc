@@ -4,26 +4,16 @@
 void Tasks::Print()
 {
   int num = 1;
-  Tasks tmpTasks;
-  while(!Empty())
+  for(auto& elem : printVector_)
   {
-    TaskNode* cur = Top();
     printf("第%d个task:\n", num++);
-    cur->PrintIndicator();
-    tmpTasks.Push(cur);
-    Pop();
-  }
-  while(!tmpTasks.Empty())
-  {
-    Push(tmpTasks.Top());
-    tmpTasks.Pop();
+    elem->PrintIndicator();
   }
 }
 
 void Tasks::ProcessTasks()
 {
   cout << "start process task" << endl;
-  Tasks tmpTasks;
   CPU cpu;
   auto start = steady_clock::now();
   while(!processDone)
@@ -38,33 +28,8 @@ void Tasks::ProcessTasks()
       cpu.curProcessTask_ = curTaskNode;
 
       // 1.2  交给cpu执行curTask
-      cpu.RunTask(this);
-      if(cpu.beDeprive_)
-      {
-        // 1.3 被剥夺
-        // 1.3.1 把当前process优先级降1
-        if(curTaskNode->priority_ > 20) (curTaskNode->priority_)--;
-        cout << "current task be deprive! now current task's priority: "
-          << curTaskNode->priority_ << endl;
-        // 1.3.2 再把该task插入到队列里继续下一轮
-        pthread_mutex_lock(&mutex);
-        Push(curTaskNode);
-        pthread_mutex_unlock(&mutex);
-      }
-      else
-      {
-        tmpTasks.Push(curTaskNode);
-        curTaskNode->setRemainProcessTime(0);
-        curTaskNode->setCompleteTime(steady_clock::now());
-        cout << "process a task done, this task's priority: " << curTaskNode->priority_ << endl;
-      }
+      cpu.RunTask(this, &mutex);
     }
-  }
-
-  while(!tmpTasks.Empty())
-  {
-    Push(tmpTasks.Top());
-    tmpTasks.Pop();
   }
 
   auto end = steady_clock::now();

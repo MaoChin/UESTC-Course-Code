@@ -79,6 +79,12 @@ public:
     }
   }
 
+  // 重载
+  void Push(TaskNode* task, int)
+  {
+    printVector_.push_back(task);
+  }
+
   void Push(TaskNode* task)
   {
     readyQueue_.push(task);
@@ -101,4 +107,6 @@ public:
 private:
   // 1. 优先级+抢占式
   std::priority_queue<TaskNode*> readyQueue_;
+  // 方便打印
+  std::vector<TaskNode*> printVector_;
 };

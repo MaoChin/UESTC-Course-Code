@@ -6,39 +6,40 @@
 class CPU
 {
 public:
-  CPU(TaskNode* curProcessTask  = nullptr, bool beDeprive = false)
+  CPU(TaskNode* curProcessTask  = nullptr)
     : curProcessTask_(curProcessTask)
-    , beDeprive_(beDeprive)
   {}
 
-  void RunTask(Tasks* const tasks);
+  void RunTask(Tasks* const tasks, pthread_mutex_t* pmutex);
 
   TaskNode* curProcessTask_;
-  bool beDeprive_;
 };
 
-void CPU::RunTask(Tasks* const tasks)
+void CPU::RunTask(Tasks* const tasks, pthread_mutex_t* pmutex)
 {
-  beDeprive_ = false;
-  // 1. 获取当前Task运行时间 单位：ms
+  if(pmutex == nullptr)
+    std::cerr << "the pmutex is nullptr" << std::endl;
+  // 1. 获取当前Task剩余运行时间 单位：ms
   int remainProcessTime = curProcessTask_->getRemainProcessTime();
-  // clock 的单位是clicks
-  // clock_t end = clock() + TO_CLOCK(remainProcessTime);
-  clock_t end = clock() + ((clock_t)(((float)(remainProcessTime / 1000)) * CLOCKS_PER_SEC));
-
-  // 2. 处理Task，同时检测是否会被剥夺
-  while(true)
+  // 2. 处理task
+  if(remainProcessTime > TIMESLICE)
   {
-    // 2.1 正常处理完成
-    if(clock() > end) break;
-
-    // 这里也加锁可能会好一些，把mutex作为参数传进来。但考虑到这是死循环，所以不加锁也可以。
-    if(tasks->Top()->priority_ > curProcessTask_->priority_)
-    {
-      // 2.2 被高优先级Task剥夺
-      beDeprive_ = true;
-      curProcessTask_->setRemainProcessTime(((end - clock()) / CLOCKS_PER_SEC) * 1000);
-      break;
-    }    
+    usleep(TIMESLICE * 1000);
+    curProcessTask_->setRemainProcessTime(remainProcessTime - TIMESLICE);
+    // 优先级-1
+    --(curProcessTask_->priority_);
+    std::cout << "current task's remain process time: " << 
+      curProcessTask_->getRemainProcessTime() << "exchange a new task!" << std::endl;
+    // 加锁
+    pthread_mutex_lock(pmutex);
+    tasks->Push(curProcessTask_);
+    pthread_mutex_unlock(pmutex);
+  }
+  else 
+  {
+    usleep(remainProcessTime * 1000);
+    curProcessTask_->setRemainProcessTime(0);
+    curProcessTask_->setCompleteTime(steady_clock::now());
+    std::cout << "process a task done" << std::endl;
   }
 }
