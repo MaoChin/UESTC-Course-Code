@@ -3,6 +3,7 @@
 #include <chrono>
 #include <queue>
 #include <vector>
+#include <atomic>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -13,7 +14,7 @@
 // 整把全局互斥锁，保护临界资源 tasks  加 static 修饰，防止多个文件包含这个头文件而导致命名冲突
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 // 所有任务生产完成的标记
-static bool processDone = false;
+static std::atomic_bool processDone;
 
 using namespace std::chrono;
 using std::cout;

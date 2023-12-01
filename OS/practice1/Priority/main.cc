@@ -7,6 +7,7 @@ int main()
   // 随机数种子
   srand(time(0));
   Tasks tasks;
+  processDone = false;
 
   // 1.1 采用多线程，新线程负责生产 Task
   pthread_t thread1;

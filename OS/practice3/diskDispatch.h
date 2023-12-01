@@ -15,7 +15,7 @@ using std::list;
 
 struct PCB
 {
-  PCB(int arriveTime, int requestTrack)
+  PCB(int arriveTime = 0, int requestTrack = 0)
     :arriveTime_(arriveTime), requestTrack_(requestTrack)
   {}
   int arriveTime_;

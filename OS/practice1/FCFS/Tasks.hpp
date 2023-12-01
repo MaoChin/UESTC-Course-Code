@@ -2,6 +2,7 @@
 #include <iostream>
 #include <chrono>
 #include <queue>
+#include <atomic>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -12,11 +13,12 @@ using std::cout;
 using std::cin;
 using std::cerr;
 using std::endl;
+using std::atomic_bool;
 
 // 共产生 TASKNUM 个 Task
 #define TASKNUM 5
 // 所有任务生产完成的标记
-bool processDone = false;
+atomic_bool processDone;
 // 整把全局互斥锁，保护临界资源 tasks
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -44,14 +46,16 @@ public:
   }
   void PrintIndicator()
   {
+    // 周转时间 = 任务完成时刻 - 任务到达时刻
+    // 带权周转时间 = 周转时间 / 实际服务时间
     duration<double> time_span = duration_cast<duration<double>>(completeTime_-comeTime_);
     cout << "周转时间：" << time_span.count() << " seconds" << endl;
     cout << "带权周转时间：" << time_span.count() / (double)(totalProcessTime_ / 1000) << " seconds"<< endl; 
   }
 
 private:
-  int totalProcessTime_;                         // 总处理时间  单位：s
-  int remainProcessTime_;                        // 剩余处理时间
+  int totalProcessTime_;                         // 总处理时间  单位：ms
+  int remainProcessTime_;                        // 剩余处理时间  单位：ms
   steady_clock::time_point comeTime_;            // Task到达时间
   steady_clock::time_point completeTime_;        // Task 处理完成时间
 };
@@ -174,7 +178,7 @@ void* ProduceTask(void* ptasks)
 
     // 获取 Task 的到来时间和处理时间
     auto comeTime = steady_clock::now();
-    processTime = (rand() % 5000) + 1000;    // 处理时间在 1~6s之间 
+    processTime = (rand() % 1000) + 1000;    // 处理时间在 1~6s之间 
     TaskNode* taskNode = new TaskNode(comeTime, processTime);
     // 加锁
     pthread_mutex_lock(&mutex);   // 阻塞式加锁
